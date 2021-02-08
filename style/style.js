@@ -6,7 +6,7 @@ export default StyleSheet.create({
     backgroundColor: '#fff'
   },
   header: {
-    marginTop: 30,
+    marginTop: 20,
     backgroundColor: 'skyblue',
     flexDirection: 'row'
   },
@@ -40,19 +40,19 @@ export default StyleSheet.create({
     backgroundColor: '#fff',
     textAlign: 'center',
     justifyContent: 'center',
-    fontSize: 18,
+    fontSize: 15,
   },
   row: {
-    margin: 20,
+    margin: 10,
     padding: 10
   },
   flex: {
     flexDirection: "row"
   },
   button: {
-    margin: 30,
+    margin: 15,
     flexDirection: "row",
-    padding: 10,
+    padding: 5,
     backgroundColor: "#73CED6",
     width: 150,
     borderRadius: 15,

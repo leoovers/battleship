@@ -12,7 +12,7 @@ const MISSED = 'cross';
 const HIT = 'circle';
 
 const Game = {
-    notStarted: "Click the start button...",
+    notStarted: "The game is not started",
     running: "The game is on...",
     won: "You sunk all the ships.",
     lostTime: "You ran out of time.",
@@ -24,12 +24,17 @@ export default class Gameboard extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            seconds: 30,
             game: Game.notStarted,
             board: [],
             bombs: null,
             hits: null,
+            userDidWrong: false,
         };
+        this.interval = null;
+    }
 
+    componentDidMount() {
         this.initializeBoard();
     }
     
@@ -41,6 +46,11 @@ export default class Gameboard extends React.Component {
             bombs: NBR_OF_BOMBS,
             hits: 0,
         });
+        
+        
+        
+        
+       
     }
 
     chooseItemColor(number) {
@@ -59,25 +69,43 @@ export default class Gameboard extends React.Component {
         console.log(this.state);
         if (this.state.hits === NBR_OF_SHIPS) {
             this.setState({ game: Game.won });
+            clearInterval(this.interval);
+            this.interval = null;
+            
             return;
         }
         // out of time
-        if (false) {
+        if (this.state.seconds === 0) {
             this.setState({ game: Game.lostTime });
+            clearInterval(this.interval);
+            this.interval = null;
+
             return;
         }
         // out of bombs
         if (this.state.bombs === 0) {
             this.setState({ game: Game.lostBombs });
+            clearInterval(this.interval);
+            this.interval = null;
+            
             return;
         }
     }
 
+    isShip(number) {
+        const remainingShips = NBR_OF_SHIPS - this.state.hits;
+        const allTiles = NBR_OF_COLS * NBR_OF_ROWS;
+        const usedBombs = NBR_OF_BOMBS - this.state.bombs;
+        const remainingTiles = allTiles - usedBombs;
+        const probability = remainingShips / remainingTiles;
+        return Math.random() < probability;
+    }
+    
     reveal(number) {
         if (this.state.game === Game.running && this.state.board[number] === START) {
             /* not yet clicked */
-            const isShip = Math.random() < ((NBR_OF_SHIPS - this.state.hits) / 
-                (NBR_OF_COLS * NBR_OF_ROWS) + (NBR_OF_BOMBS - this.state.bombs));
+           
+            const isShip = this.isShip(number);
             // change tile
             this.state.board[number] = isShip ? HIT : MISSED;
             // counters
@@ -87,6 +115,9 @@ export default class Gameboard extends React.Component {
             }
 
             this.setState({}); // badness
+        } else if(this.state.game === Game.notStarted) {
+            this.setState({ userDidWrong: true });
+            console.log("reveal");
         }
     }
 
@@ -96,12 +127,32 @@ export default class Gameboard extends React.Component {
             // TODO
         });
         this.initializeBoard();
+        this.startTimer();
     }
     
     componentDidUpdate(prevProps, prevState) {
         if (prevState.game === Game.running) {
             this.gameEnded();
         }
+    }
+
+    // Timer related things
+
+    startTimer() {
+        this.state.seconds = 30;
+        if (!this.interval) {
+            this.interval = setInterval(this.countDown.bind(this), 1000);
+        }
+    }
+    
+    countDown() {
+        // Remove one second, set state so a re-render happens.
+        let seconds = this.state.seconds - 1;
+        this.setState({
+            seconds: seconds,
+        });
+        
+        this.gameEnded();
     }
 
     render() {
@@ -114,35 +165,35 @@ export default class Gameboard extends React.Component {
         for (let i = 0; i < NBR_OF_ROWS; i++) {
             firstRow.push(
                 <Pressable key={i} style={styles.row} onPress={() => this.reveal(i)}>
-                    <Entypo key={i} name={this.state.board[i]} size={32} color={this.chooseItemColor(i)} />
+                    <Entypo key={i} name={this.state.board[i]} size={30} color={this.chooseItemColor(i)} />
                 </Pressable>
             )
         }
         for (let i = NBR_OF_ROWS; i < NBR_OF_ROWS * 2; i++) {
             secondRow.push(
                 <Pressable key={i} style={styles.row} onPress={() => this.reveal(i)}>
-                    <Entypo key={i} name={this.state.board[i]} size={32} color={this.chooseItemColor(i)} />
+                    <Entypo key={i} name={this.state.board[i]} size={30} color={this.chooseItemColor(i)} />
                 </Pressable>
             )
         }
         for (let i = NBR_OF_ROWS *2; i < NBR_OF_ROWS * 3; i++) {
             thirdRow.push(
                 <Pressable key={i} style={styles.row} onPress={() => this.reveal(i)}>
-                    <Entypo key={i} name={this.state.board[i]} size={32} color={this.chooseItemColor(i)} />
+                    <Entypo key={i} name={this.state.board[i]} size={30} color={this.chooseItemColor(i)} />
                 </Pressable>
             )
         }
         for (let i = NBR_OF_ROWS *3; i < NBR_OF_ROWS * 4; i++) {
             fourthRow.push(
                 <Pressable key={i} style={styles.row} onPress={() => this.reveal(i)}>
-                    <Entypo key={i} name={this.state.board[i]} size={32} color={this.chooseItemColor(i)} />
+                    <Entypo key={i} name={this.state.board[i]} size={30} color={this.chooseItemColor(i)} />
                 </Pressable>
             )
         }
         for (let i = NBR_OF_ROWS *4; i < NBR_OF_ROWS * 5; i++) {
             fifthRow.push(
                 <Pressable key={i} style={styles.row} onPress={() => this.reveal(i)}>
-                    <Entypo key={i} name={this.state.board[i]} size={32} color={this.chooseItemColor(i)} />
+                    <Entypo key={i} name={this.state.board[i]} size={30} color={this.chooseItemColor(i)} />
                 </Pressable>
             )
         }
@@ -166,10 +217,19 @@ export default class Gameboard extends React.Component {
                 { this.state.game !== Game.notStarted &&
                     <>
                         <Text style={styles.gameinfo}>Hits: {this.state.hits} Bombs: {this.state.bombs} Ships: {NBR_OF_SHIPS - this.state.hits}</Text>
-                        <Text style={styles.gameinfo}>Time: {this.state.time}</Text>
+                        <Text style={styles.gameinfo}>Time: {this.state.seconds}</Text>
                     </>
                 }
-                <Text style={styles.gameinfo}>Status: {this.state.game}</Text>
+                { this.state.game === Game.notStarted && this.state.userDidWrong &&
+                    <Text style={styles.gameinfo}>
+                        Status: Click the start button first...
+                    </Text>
+                }
+                { (this.state.game !== Game.notStarted || !this.state.userDidWrong) && 
+                    <Text style={styles.gameinfo}>
+                        Status: {this.state.game}
+                    </Text>
+                }
             </View>
         )
     }

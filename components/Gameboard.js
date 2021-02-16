@@ -117,14 +117,13 @@ export default class Gameboard extends React.Component {
             this.setState({}); // badness
         } else if(this.state.game === Game.notStarted) {
             this.setState({ userDidWrong: true });
-            console.log("reveal");
+           
         }
     }
 
     resetGame() {
         this.setState({
             game: Game.running,
-            // TODO
         });
         this.initializeBoard();
         this.startTimer();
